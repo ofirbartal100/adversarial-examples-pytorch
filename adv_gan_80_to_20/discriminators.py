@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-from adversarial_examples_pytorch.adv_gan.pix2pix_networks import NLayerDiscriminator
+
 
 class Discriminator_MNIST(nn.Module):
 	def __init__(self):
@@ -32,30 +32,17 @@ class Discriminator_MNIST(nn.Module):
 
 		return x
 
-# class Discriminator_CIFAR10(Discriminator_MNIST):
-# 	def __init__(self):
-# 		super().__init__()
-# 		self.conv1 = nn.Conv2d(3,8, kernel_size=4, stride=2, padding=1) # 3 channels
-# 		self.fc = nn.Linear(4*4*32, 1)
-
-class Discriminator_CIFAR10(NLayerDiscriminator):
-	def __init__(self):
-		super().__init__(3, 64, 2, nn.BatchNorm2d)
-
 
 if __name__ == '__main__':
 
-	from torchscope import scope
-	# from tensorboardX import SummaryWriter
+	from tensorboardX import SummaryWriter
 	from torch.autograd import Variable
 	from torchvision import models
 
-	# X = Variable(torch.rand(13, 1, 28, 28))
+	X = Variable(torch.rand(13, 1, 28, 28))
 
-	model = Discriminator_CIFAR10()
-	scope(model,input_size=(3,32,32))
-	# model = Discriminator_MNIST()
-	# model(X)
+	model = Discriminator_MNIST()
+	model(X)
 
-	# with SummaryWriter(log_dir="visualization/Discriminator_MNIST", comment='Discriminator_MNIST') as w:
-		# w.add_graph(model, (X, ), verbose=True)
+	with SummaryWriter(log_dir="visualization/Discriminator_MNIST", comment='Discriminator_MNIST') as w:
+		w.add_graph(model, (X, ), verbose=True)

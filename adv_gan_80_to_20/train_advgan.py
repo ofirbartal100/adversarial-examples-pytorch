@@ -6,11 +6,8 @@ import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR
 
 import target_models
-import discriminators
-import generators
-from torchvision import models
-# from generators import Generator_MNIST as Generator
-# from discriminators import Discriminator_MNIST as Discriminator
+from generators import Generator_MNIST as Generator
+from discriminators import Discriminator_MNIST as Discriminator
 from prepare_dataset import load_dataset
 from train_function import train
 from test_function import test
@@ -21,7 +18,7 @@ import os
 import argparse
 
 
-def CWLoss(logits, target, is_targeted, num_classes=10, kappa=0):
+def CWLoss(logits, target, is_targeted, num_classes=8, kappa=0):
     # inputs to the softmax function are called logits.
     # https://arxiv.org/pdf/1608.04644.pdf
     target_one_hot = torch.eye(num_classes).type(logits.type())[target.long()]
@@ -41,9 +38,8 @@ def CWLoss(logits, target, is_targeted, num_classes=10, kappa=0):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Train AdvGAN')
-    parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist', 'fmnist', 'cifar10', 'cifar100'], required=False, help='dataset (default: mnist)')
-    parser.add_argument('--model', type=str, default="Model_C", required=False, choices=["Model_A", "Model_B", "Model_C", "resnet34"], help='model name (default: Model_C)')
+    parser = argparse.ArgumentParser(description='Train AdvGAN 80% -> 20%')
+    parser.add_argument('--model', type=str, default="Model_C", required=False, choices=["Model_A", "Model_B", "Model_C"], help='model name (default: Model_C)')
     parser.add_argument('--epochs', type=int, default=15, required=False, help='no. of epochs (default: 30)')
     parser.add_argument('--batch_size', type=int, default=128, required=False, help='batch size (default: 128)')
     parser.add_argument('--lr', type=float, default=0.001, required=False, help='learning rate (default: 0.001)')
@@ -62,10 +58,10 @@ if __name__ == '__main__':
     thres = args.thres # thres is hard-coded below, change it
     gpu = args.gpu
 
-    dataset_name = args.dataset # Only MNIST implemented for now
+    dataset_name = 'mnist' # Only MNIST implemented for now
 
     is_targeted = False
-    if target in range(0, 10):
+    if target in range(0, 8):
         is_targeted = True # bool variable to indicate targeted or untargeted attack
 
     print('Training AdvGAN ', '(Target %d)'%(target) if is_targeted else '(Untargeted)')
@@ -74,21 +70,11 @@ if __name__ == '__main__':
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-    # D = Discriminator()
-    D = getattr(discriminators, f'Discriminator_{dataset_name.upper()}')()
-    # G = Generator()
-    G = getattr(generators, f'Generator_{dataset_name.upper()}')()
+    D = Discriminator()
+    G = Generator()
+    f = getattr(target_models, model_name)(in_channels, num_classes)
 
-    # load model
-    if dataset_name == 'cifar10':
-        f = models.resnet34(pretrained = True).cuda()
-        IN_FEATURES = f.fc.in_features 
-        fc = torch.nn.Linear(IN_FEATURES, 10)
-        f.fc = fc
-    else:
-        f = getattr(target_models, model_name)(in_channels, num_classes)
-
-    checkpoint_path = os.path.join('saved', 'target_models', 'best_%s_%s.pth.tar'%(model_name,dataset_name))
+    checkpoint_path = os.path.join('saved', 'target_models', 'best_%s_mnist.pth.tar'%(model_name))
     checkpoint = torch.load(checkpoint_path, map_location='cpu')
     f.load_state_dict(checkpoint["state_dict"])
     f.eval()
@@ -105,11 +91,7 @@ if __name__ == '__main__':
     scheduler_D = StepLR(optimizer_D, step_size=5, gamma=0.1)
 
     criterion_adv =  CWLoss # loss for fooling target model
-
     criterion_gan = nn.MSELoss() # for gan loss
-    if dataset_name == 'cifar10':
-        criterion_gan = nn.BCEWithLogitsLoss() # for gan loss
-
     alpha = 1 # gan loss multiplication factor
     beta = 1 # for hinge loss
     num_steps = 3 # number of generator updates for 1 discriminator update

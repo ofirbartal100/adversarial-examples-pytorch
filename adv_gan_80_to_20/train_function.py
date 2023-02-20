@@ -32,8 +32,7 @@ def train(G, D, f, target, is_targeted, thres, criterion_adv, criterion_gan, alp
             loss_adv = criterion_adv(y_pred, y_true, is_targeted)
             acc += torch.sum(torch.max(y_pred, 1)[1] != y_true).item()
 
-        d_img_fake = D(img_fake)
-        loss_gan = criterion_gan(d_img_fake, torch.ones_like(d_img_fake)) # valid
+        loss_gan = criterion_gan(D(img_fake), valid)
         loss_hinge = torch.mean(torch.max(torch.zeros(1, ).type(y_pred.type()), torch.norm(pert.view(pert.size(0), -1), p=2, dim=1) - thres))
 
         loss_g = loss_adv + alpha*loss_gan + beta*loss_hinge
@@ -43,10 +42,8 @@ def train(G, D, f, target, is_targeted, thres, criterion_adv, criterion_gan, alp
 
         optimizer_D.zero_grad()
         if i % num_steps == 0:
-            d_img_real = D(img_real)
-            loss_real = criterion_gan(d_img_real, torch.ones_like(d_img_real)) # valid
-            d_img_fake = D(img_fake.detach())
-            loss_fake = criterion_gan(d_img_fake, torch.ones_like(d_img_fake)) # fake (invalid)
+            loss_real = criterion_gan(D(img_real), valid)
+            loss_fake = criterion_gan(D(img_fake.detach()), fake)
 
             loss_d = 0.5*loss_real + 0.5*loss_fake
 

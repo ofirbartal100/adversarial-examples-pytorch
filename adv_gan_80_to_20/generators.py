@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from adversarial_examples_pytorch.adv_gan.pix2pix_networks import UnetSkipConnectionBlock
+
 
 class ResidualBlock(torch.nn.Module):
     def __init__(self, channels):
@@ -97,55 +97,17 @@ class Generator_MNIST(nn.Module):
 
         return x
 
-# class Generator_CIFAR10(Generator_MNIST):
-#     def __init__(self) -> None:
-#         super().__init__()
-#         self.conv1 = nn.Conv2d(3, 8, kernel_size=3, stride=1, padding=1) # 3 channels
-#         self.conv4 = nn.Conv2d(8, 3, kernel_size=3, stride=1, padding=1) # 3 channels
-
-class UnetGeneratorCIFAR(nn.Module):
-    """Create a Unet-based generator"""
-
-    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=nn.BatchNorm2d):
-        """Construct a Unet generator
-        Parameters:
-            input_nc (int)  -- the number of channels in input images
-            output_nc (int) -- the number of channels in output images
-            num_downs (int) -- the number of downsamplings in UNet. For example, # if |num_downs| == 7,
-                                image of size 128x128 will become of size 1x1 # at the bottleneck
-            ngf (int)       -- the number of filters in the last conv layer
-            norm_layer      -- normalization layer
-
-        We construct the U-Net from the innermost layer to the outermost layer.
-        It is a recursive process.
-        """
-        super().__init__()
-        # construct unet structure
-        unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, input_nc=None, submodule=None, norm_layer=norm_layer, innermost=True)  # add the innermost layer
-        unet_block = UnetSkipConnectionBlock(ngf * 4, ngf * 8, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
-        unet_block = UnetSkipConnectionBlock(ngf, ngf * 4, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
-        self.model = UnetSkipConnectionBlock(output_nc, ngf, input_nc=input_nc, submodule=unet_block, outermost=True, norm_layer=norm_layer)  # add the outermost layer
-
-    def forward(self,x):
-        return self.model(x)
-
-class Generator_CIFAR10(UnetGeneratorCIFAR):
-    def __init__(self):
-        super().__init__(3, 3,  16, nn.BatchNorm2d)
-
 
 
 if __name__ == '__main__':
 
-    # from tensorboardX import SummaryWriter
+    from tensorboardX import SummaryWriter
     from torch.autograd import Variable
     from torchvision import models
-    from torchscope import scope
 
-    # X = Variable(torch.rand(13, 3, 32, 32))
+    X = Variable(torch.rand(13, 1, 28, 28))
 
-    model = Generator_CIFAR()
-    scope(model,input_size=(3,32,32))
+    model = Generator_MNIST()
 
-    # with SummaryWriter(log_dir="tmp/Generator_MNIST", comment='Generator_MNIST') as w:
-    #     w.add_graph(model, (X, ))
+    with SummaryWriter(log_dir="visualization/Generator_MNIST", comment='Generator_MNIST') as w:
+        w.add_graph(model, (X, ))

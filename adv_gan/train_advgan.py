@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     print('Training AdvGAN ', '(Target %d)'%(target) if is_targeted else '(Untargeted)')
 
-    train_data, test_data, in_channels, num_classes = load_dataset(dataset_name)
+    train_data, test_data, in_channels, num_classes , normalize_fn = load_dataset(dataset_name)
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
@@ -113,14 +113,14 @@ if __name__ == '__main__':
     alpha = 1 # gan loss multiplication factor
     beta = 1 # for hinge loss
     num_steps = 3 # number of generator updates for 1 discriminator update
-    thres = c = 0.3 # perturbation bound, used in loss_hinge
+    # thres = c = 0.3 # perturbation bound, used in loss_hinge
 
 
     device = 'cuda' if gpu else 'cpu'
 
     for epoch in range(epochs):
-        acc_train = train(G, D, f, target, is_targeted, thres, criterion_adv, criterion_gan, alpha, beta, train_loader, optimizer_G, optimizer_D, epoch, epochs, device, num_steps, verbose=True)
-        acc_test = test(G, f, target, is_targeted, thres, test_loader, epoch, epochs, device, verbose=True)
+        acc_train = train(G, D, f, target, is_targeted, thres, criterion_adv, criterion_gan, alpha, beta, train_loader, optimizer_G, optimizer_D, epoch, epochs, device, num_steps, verbose=True , normalize_fn=normalize_fn)
+        acc_test = test(G, f, target, is_targeted, thres, test_loader, epoch, epochs, device, verbose=True , normalize_fn=normalize_fn)
 
         scheduler_G.step()
         scheduler_D.step()

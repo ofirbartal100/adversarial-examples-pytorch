@@ -1,5 +1,5 @@
 from torchvision import datasets, transforms
-
+import torch
 
 def load_dataset(dataset_name):
 
@@ -22,6 +22,9 @@ def load_dataset(dataset_name):
                                     #transforms.Normalize((0.1307,), (0.3081,))
                                     #transforms.Normalize((0.5,), (0.5,))
                                     ]))
+        mean = torch.tensor([0], dtype=torch.float32)
+        std = torch.tensor([1], dtype=torch.float32)
+        normalize_fn = transforms.Normalize(mean.tolist(), std.tolist())
 
 
     elif dataset_name == 'fmnist':
@@ -60,5 +63,9 @@ def load_dataset(dataset_name):
                                     transforms.ToTensor(),
                                     # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2615))
                                     ]))
+        
+        mean = torch.tensor([0.4914, 0.4822, 0.4465], dtype=torch.float32)
+        std = torch.tensor([0.2470, 0.2435, 0.2615], dtype=torch.float32)
+        normalize_fn = transforms.Normalize(mean.tolist(), std.tolist())
 
-    return (train, test, in_channels, num_classes)
+    return (train, test, in_channels, num_classes , normalize_fn )

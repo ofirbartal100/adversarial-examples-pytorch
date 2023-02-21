@@ -2,7 +2,7 @@ import torch
 from torch.autograd import Variable
 
 
-def train(G, D, f, target, is_targeted, thres, criterion_adv, criterion_gan, alpha, beta, train_loader, optimizer_G, optimizer_D, epoch, epochs, device, num_steps=3, verbose=True):
+def train(G, D, f, target, is_targeted, thres, criterion_adv, criterion_gan, alpha, beta, train_loader, optimizer_G, optimizer_D, epoch, epochs, device, num_steps=3, verbose=True,normalize_fn=lambda x:x):
     n = 0
     acc = 0
     num_steps = num_steps
@@ -21,7 +21,7 @@ def train(G, D, f, target, is_targeted, thres, criterion_adv, criterion_gan, alp
         img_fake = pert + img_real
         img_fake = img_fake.clamp(min=0, max=1)
 
-        y_pred = f(img_fake)
+        y_pred = f(normalize_fn(img_fake))
 
         if is_targeted:
             y_target = Variable(torch.ones_like(label).fill_(target).to(device))
@@ -42,14 +42,13 @@ def train(G, D, f, target, is_targeted, thres, criterion_adv, criterion_gan, alp
         optimizer_G.step()
 
         optimizer_D.zero_grad()
+        d_img_real = D(img_real)
+        loss_real = criterion_gan(d_img_real, torch.ones_like(d_img_real)) # valid
+        d_img_fake = D(img_fake.detach())
+        loss_fake = criterion_gan(d_img_fake, torch.ones_like(d_img_fake)) # fake (invalid)
+        loss_d = 0.5*loss_real + 0.5*loss_fake
+
         if i % num_steps == 0:
-            d_img_real = D(img_real)
-            loss_real = criterion_gan(d_img_real, torch.ones_like(d_img_real)) # valid
-            d_img_fake = D(img_fake.detach())
-            loss_fake = criterion_gan(d_img_fake, torch.ones_like(d_img_fake)) # fake (invalid)
-
-            loss_d = 0.5*loss_real + 0.5*loss_fake
-
             loss_d.backward(torch.ones_like(loss_d))
             optimizer_D.step()
 

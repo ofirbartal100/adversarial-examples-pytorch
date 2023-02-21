@@ -144,8 +144,46 @@ if __name__ == '__main__':
 
     # X = Variable(torch.rand(13, 3, 32, 32))
 
-    model = Generator_CIFAR()
+    model = Generator_CIFAR10()
     scope(model,input_size=(3,32,32))
 
     # with SummaryWriter(log_dir="tmp/Generator_MNIST", comment='Generator_MNIST') as w:
     #     w.add_graph(model, (X, ))
+# CIFAR-10 Generator
+# ------------------------------------------------------------------------------------------------------
+#         Layer (type)               Output Shape          Params           FLOPs           Madds
+# ======================================================================================================
+#             Conv2d-1            [2, 16, 16, 16]             768         196,608         389,120
+#          LeakyReLU-2            [2, 16, 16, 16]               0           4,096               0
+#             Conv2d-3              [2, 64, 8, 8]          16,384       1,048,576       2,093,056
+#        BatchNorm2d-4              [2, 64, 8, 8]             128           8,192          16,384
+#          LeakyReLU-5              [2, 64, 8, 8]               0           4,096               0
+#             Conv2d-6             [2, 128, 4, 4]         131,072       2,097,152       4,192,256
+#        BatchNorm2d-7             [2, 128, 4, 4]             256           4,096           8,192
+#          LeakyReLU-8             [2, 128, 4, 4]               0           2,048               0
+#             Conv2d-9             [2, 128, 2, 2]         262,144       1,048,576       2,096,640
+#              ReLU-10             [2, 128, 2, 2]               0             512             512
+#   ConvTranspose2d-11             [2, 128, 4, 4]         262,144               0       2,096,640
+#       BatchNorm2d-12             [2, 128, 4, 4]             256           4,096           8,192
+#              ReLU-13             [2, 256, 4, 4]               0           4,096           4,096
+#   ConvTranspose2d-14              [2, 64, 8, 8]         262,144               0       8,387,584
+#       BatchNorm2d-15              [2, 64, 8, 8]             128           8,192          16,384
+#              ReLU-16             [2, 128, 8, 8]               0           8,192           8,192
+#   ConvTranspose2d-17            [2, 16, 16, 16]          32,768               0       4,193,280
+#       BatchNorm2d-18            [2, 16, 16, 16]              32           8,192          16,384
+#              ReLU-19            [2, 32, 16, 16]               0           8,192           8,192
+#   ConvTranspose2d-20             [2, 3, 32, 32]           1,539               0         786,432
+#              Tanh-21             [2, 3, 32, 32]               0               0               0
+# ======================================================================================================
+# Total params: 969,763
+# Trainable params: 969,763
+# Non-trainable params: 0
+# Total FLOPs: 4,454,912
+# Total Madds: 24,321,536
+# ----------------------------------------------------------------
+# Input size (MB): 0.00
+# Forward/backward pass size (MB): 0.29
+# Params size (MB): 0.92
+# Estimated Total Size (MB): 1.21
+# FLOPs size (GB): 0.00
+# Madds size (GB): 0.02

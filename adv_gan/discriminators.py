@@ -59,3 +59,31 @@ if __name__ == '__main__':
 
 	# with SummaryWriter(log_dir="visualization/Discriminator_MNIST", comment='Discriminator_MNIST') as w:
 		# w.add_graph(model, (X, ), verbose=True)
+
+# CIFAR-10 Discriminator
+# ------------------------------------------------------------------------------------------------------
+#         Layer (type)               Output Shape          Params           FLOPs           Madds
+# ======================================================================================================
+#             Conv2d-1            [2, 64, 16, 16]           3,136         802,816       1,572,864
+#          LeakyReLU-2            [2, 64, 16, 16]               0          16,384               0
+#             Conv2d-3             [2, 128, 8, 8]         131,072       8,388,608      16,769,024
+#        BatchNorm2d-4             [2, 128, 8, 8]             256          16,384          32,768
+#          LeakyReLU-5             [2, 128, 8, 8]               0           8,192               0
+#             Conv2d-6             [2, 256, 7, 7]         524,288      25,690,112      51,367,680
+#        BatchNorm2d-7             [2, 256, 7, 7]             512          25,088          50,176
+#          LeakyReLU-8             [2, 256, 7, 7]               0          12,544               0
+#             Conv2d-9               [2, 1, 6, 6]           4,097         147,492         294,912
+# ======================================================================================================
+# Total params: 663,361
+# Trainable params: 663,361
+# Non-trainable params: 0
+# Total FLOPs: 35,107,620
+# Total Madds: 70,087,424
+# ----------------------------------------------------------------
+# Input size (MB): 0.00
+# Forward/backward pass size (MB): 0.36
+# Params size (MB): 0.63
+# Estimated Total Size (MB): 1.00
+# FLOPs size (GB): 0.04
+# Madds size (GB): 0.07
+# ----------------------------------------------------------------

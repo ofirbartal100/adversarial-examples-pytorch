@@ -2,7 +2,7 @@ import torch
 from torch.autograd import Variable
 
 
-def test(G, f, target, is_targeted, thres, test_loader, epoch, epochs, device, verbose=True):
+def test(G, f, target, is_targeted, thres, test_loader, epoch, epochs, device, verbose=True,normalize_fn=lambda x:x,unnormalize_fn=lambda x:x):
     n = 0
     acc = 0
 
@@ -14,7 +14,7 @@ def test(G, f, target, is_targeted, thres, test_loader, epoch, epochs, device, v
         img_fake = pert + img_real
         img_fake = img_fake.clamp(min=0, max=1)
 
-        y_pred = f(img_fake)
+        y_pred = f(normalize_fn(img_fake))
 
         if is_targeted:
             y_target = Variable(torch.ones_like(label).fill_(target).to(device))

@@ -27,7 +27,7 @@ def save_checkpoint(state, checkpoint_name, best_name):
         shutil.copyfile(checkpoint_name, best_name)
 
 
-def train(model, train_loader, criterion, optimizer, epoch, epochs):
+def train(model, train_loader, criterion, optimizer, epoch, epochs,normalize_fn):
     model.train()
 
     n = 0
@@ -39,7 +39,7 @@ def train(model, train_loader, criterion, optimizer, epoch, epochs):
 
         optimizer.zero_grad()
 
-        out = model(X)
+        out = model(normalize_fn(X))
         _, y_pred = torch.max(out.data, 1)
 
         loss = criterion(out, y)
@@ -57,7 +57,7 @@ def train(model, train_loader, criterion, optimizer, epoch, epochs):
 
     return train_loss/n, train_acc/n
 
-def train_adv(model, train_loader, criterion, optimizer, epoch, epochs, atk):
+def train_adv(model, train_loader, criterion, optimizer, epoch, epochs,normalize_fn, atk):
     model.train()
     p_adv = 0.5
     n = 0
@@ -67,7 +67,7 @@ def train_adv(model, train_loader, criterion, optimizer, epoch, epochs, atk):
         X = Variable(X.float().cuda())
         y = Variable(y.long().cuda())
         
-        adv_data = atk(X,y)
+        adv_data = atk(normalize_fn(X),y)
         adv_mask = torch.rand(y.shape) < p_adv
         shape = list(X.shape)
         shape[0] = -1
@@ -78,7 +78,7 @@ def train_adv(model, train_loader, criterion, optimizer, epoch, epochs, atk):
 
         optimizer.zero_grad()
 
-        out = model(data_mix)
+        out = model(normalize_fn(data_mix))
         _, y_pred = torch.max(out.data, 1)
 
         loss = criterion(out, target_mix)
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     torch.manual_seed(seed)
 
     # load dataset
-    train_data, test_data, in_channels, num_classes = load_dataset(dataset_name)
+    train_data, test_data, in_channels, num_classes , normalize_fn = load_dataset(dataset_name)
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True, num_workers=num_workers)
 
@@ -212,9 +212,9 @@ if __name__ == '__main__':
 
         t0 = time.time()
         if adv:
-            train_loss, train_acc = train_adv(model, train_loader, criterion, optimizer, epoch, epochs, atk)
+            train_loss, train_acc = train_adv(model, train_loader, criterion, optimizer, epoch, epochs, normalize_fn , atk)
         else:
-            train_loss, train_acc = train(model, train_loader, criterion, optimizer, epoch, epochs)
+            train_loss, train_acc = train(model, train_loader, criterion, optimizer, epoch, epochs ,normalize_fn)
         t1 = time.time()
 
         test_loss, test_acc = test(model, test_loader, criterion, epoch, epochs)
